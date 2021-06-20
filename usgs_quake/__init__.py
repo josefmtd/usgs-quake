@@ -94,3 +94,12 @@ class USGSEarthquake():
             return(len(self.data))
         else:
             return count
+
+    def get_simplified_dataframe(self):
+        list_columns = ['id', 'properties_time', 'properties_place', \
+            'geometry_coordinates_0', 'geometry_coordinates_1', \
+            'geometry_coordinates_2', 'properties_mag', 'properties_url']
+        df = self.data[list_columns].copy()
+        df.columns = ['ID', 'Datetime', 'Place', 'Longitude', 'Latitude', \
+            'Depth', 'Magnitude', 'URL']
+        return df.copy()
