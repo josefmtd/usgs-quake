@@ -3,7 +3,7 @@ from setuptools import setup
 setup(name = 'usgs_quake',
     author = 'Josef Matondang',
     author_email = 'admin@josefmtd.com',
-    version = '1.0.1',
+    version = '1.0.2',
     description = 'USGS Earthquake Real-time Feed and Historical Data',
     classifiers = [
         'Development Status :: 4 - Beta',
