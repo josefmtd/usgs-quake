@@ -10,7 +10,7 @@ setup(name = 'usgs_quake',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.8',
     ],
-    keywords = 'earthquake'
+    keywords = 'earthquake',
     url = 'https://github.com/josefmtd/usgs-quake',
     license = 'MIT',
     packages = ['usgs_quake'],
