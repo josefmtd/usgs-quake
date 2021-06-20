@@ -15,8 +15,45 @@ FDSNWS_EVENT = 'fdsnws/event/1/query?format=geojson' + \
     '&minlongitude={}&maxlongitude={}' + \
     '&minmagnitude={}'
 
-class USGSEarthquake():
+class USGSEarthquake:
+    """
+    USGS Earthquake Data from Realtime Feed and Historical ANSS ComCat
+
+    Attributes
+    ----------
+    min_lat: float
+        minimum latitude boundary
+    max_lat: float
+        maximum latitude boundary
+    min_lon: float
+        minimum longitude boundary
+    max_lon: float
+        maximum longitude boundary
+    min_mag: float
+        minimum magnitude condition
+    url: string
+        realtime feed / historical query URL
+    data: pandas.DataFrame
+        earthquake dataframe
+    """
     def __init__(self, min_lat, max_lat, min_lon, max_lon, min_mag):
+        """
+        Constructs the boundaries and conditions for USGS
+        Realtime Feed or Historical Data Queries
+
+        Parameters
+        ----------
+        min_lat: float
+            minimum latitude boundary
+        max_lat: float
+            maximum latitude boundary
+        min_lon: float
+            minimum longitude boundary
+        max_lon: float
+            maximum longitude boundary
+        min_mag: float
+            minimum magnitude condition
+        """
         self.min_lat = min_lat
         self.max_lat = max_lat
         self.min_lon = min_lon
@@ -24,6 +61,9 @@ class USGSEarthquake():
         self.min_mag = min_mag
 
     def _to_dataframe(self, features):
+        """
+        Convert the GeoJSON to Pandas Dataframe
+        """
         df = pandas.DataFrame(features)
 
         properties = df.properties.apply(pandas.Series).copy()
@@ -36,6 +76,9 @@ class USGSEarthquake():
         self.data = pandas.concat([properties, coordinates, df.id], axis = 1)
 
     def _filter_conditions(self):
+        """
+        Filter the dataframe by latitude, longitude, and minimum magnitude
+        """
         conditions = (self.data.geometry_coordinates_0 > self.min_lon) & \
             (self.data.geometry_coordinates_1 < self.max_lon) & \
             (self.data.geometry_coordinates_2 > self.min_lat) & \
@@ -46,6 +89,9 @@ class USGSEarthquake():
         self.data.reset_index(inplace = True, drop = True)
 
     def _reformat_dataframe(self):
+        """
+        Reformat the dataframe
+        """
         self.data.properties_mag = self.data.properties_mag.astype('float64')
         self.data.properties_time = self.data.properties_time.astype('datetime64[ms]')
         self.data.properties_updated = self.data.properties_updated.astype('datetime64[ms]')
@@ -61,6 +107,19 @@ class USGSEarthquake():
         self.data.geometry_coordinates_2 = self.data.geometry_coordinates_2.astype('float64')
 
     def get_realtime_data(self, level = 'significant', period = 'hour'):
+        """
+        Get realtime earthquake data from the USGS GeoJSON Summary Feed
+
+        Parameters
+        ----------
+        level: string
+            magnitude level of earthquake: e.g. 'significant', '1.0', '2.5', '4.5'
+        period: string
+            period of events queried: e.g. 'hour', 'day', 'week', 'month'
+        Returns
+        -------
+        None
+        """
         self.url = BASE_URL + REALTIME_FEED.format(level, period)
         req = requests.get(self.url)
         assert(req.status_code == 200)
@@ -77,10 +136,22 @@ class USGSEarthquake():
             return count
 
     def get_historical_data(self, start, end):
-        self.url = BASE_URL + FDSNWS_EVENT.format(str(start), str(end), \
-            str(self.min_lat), str(self.max_lat), \
-            str(self.min_lon), str(self.max_lon), \
-            str(self.min_mag))
+        """
+        Get historical earthquake data from USGS' ANSS ComCat
+
+        Parameters
+        ----------
+        start: datetime.datetime or datetime.date
+            start datetime
+        end: datetime.datetime or datetime.date
+            end datetime
+        Returns
+        -------
+        None
+        """
+        self.url = BASE_URL + FDSNWS_EVENT.format(start.isoformat(),
+            end.isoformat(), str(self.min_lat), str(self.max_lat), \
+            str(self.min_lon), str(self.max_lon), str(self.min_mag))
         req = requests.get(self.url)
         assert(req.status_code == 200)
 
